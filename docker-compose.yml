@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    volumes:
+      - ./:/src
+    working_dir: /src
+    command: php /src/app.php
