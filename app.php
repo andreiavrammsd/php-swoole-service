@@ -20,10 +20,20 @@ $http->on("request", function ($request, $response) use($log) {
         co::fwrite($log, $message);
     });
 
-    $result = [];
+    $emails = array_unique($emails);
+    $size = count($emails);
+    $chan = new chan($size);
+
     foreach ($emails as $email) {
-        $valid = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
-        $result[$email] = $valid;
+        go(function () use($email, $chan) {
+            $valid = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+            $chan->push([$email => $valid]);
+        });
+    }
+
+    $result = [];
+    for ($i = $size; $i > 0; $i--) {
+        $result = array_merge($result, $chan->pop());
     }
 
     $response->header("Content-Type", "application/json");
